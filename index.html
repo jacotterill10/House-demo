@@ -1,0 +1,437 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>House Advert Comparer Demo Plus</title>
+  <style>
+    :root{
+      --bg:#0b1220;
+      --panel:#111827;
+      --card:#1f2937;
+      --text:#e5e7eb;
+      --muted:#94a3b8;
+      --accent:#38bdf8;
+      --accent2:#22c55e;
+      --warn:#f59e0b;
+      --border:#334155;
+    }
+    *{box-sizing:border-box}
+    body{
+      margin:0;
+      font-family:Arial, Helvetica, sans-serif;
+      background:linear-gradient(180deg,#08101d,#0f172a);
+      color:var(--text);
+    }
+    .wrap{max-width:1280px;margin:0 auto;padding:14px}
+    .hero,.panel,.card{
+      background:rgba(17,24,39,.96);
+      border:1px solid var(--border);
+      border-radius:18px;
+      box-shadow:0 10px 28px rgba(0,0,0,.25);
+    }
+    .hero{padding:18px;margin-bottom:14px}
+    .panel,.card{padding:16px}
+    h1{margin:0 0 8px;font-size:28px}
+    h2{margin:0 0 12px;font-size:18px}
+    .sub{color:var(--muted)}
+    .layout{display:grid;grid-template-columns:320px 1fr;gap:14px}
+    label{display:block;color:var(--muted);margin:10px 0 6px;font-size:14px}
+    select,input{width:100%;padding:11px 12px;border-radius:10px;border:1px solid var(--border);background:#0b1220;color:var(--text)}
+    .btnrow{display:flex;gap:8px;flex-wrap:wrap;margin-top:14px}
+    button{border:none;background:var(--accent);padding:10px 14px;border-radius:10px;font-weight:700;cursor:pointer;color:#062033}
+    button.secondary{background:#334155;color:var(--text)}
+    .main-grid{display:grid;grid-template-columns:1.25fr .95fr;gap:14px}
+    .metrics{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:14px}
+    .metric{background:rgba(31,41,55,.95);border:1px solid var(--border);border-radius:15px;padding:14px}
+    .metric .k{color:var(--muted);font-size:13px}
+    .metric .v{font-size:24px;font-weight:700;margin-top:6px}
+    .stack{display:grid;gap:14px}
+    table{width:100%;border-collapse:collapse;font-size:14px}
+    th,td{text-align:left;padding:11px 10px;border-bottom:1px solid var(--border);vertical-align:top}
+    th{color:var(--muted);font-weight:600}
+    tr:hover{background:rgba(255,255,255,.03)}
+    .tag{display:inline-block;padding:4px 8px;border-radius:999px;border:1px solid var(--border);color:var(--muted);font-size:12px;background:#0b1220}
+    .best{color:var(--accent2);font-weight:700}
+    .warn{color:var(--warn);font-weight:700}
+    .small{font-size:12px;color:var(--muted)}
+    .map{
+      position:relative;height:420px;border-radius:14px;overflow:hidden;border:1px solid var(--border);
+      background:
+        linear-gradient(90deg, rgba(255,255,255,.04) 1px, transparent 1px) 0 0/56px 56px,
+        linear-gradient(rgba(255,255,255,.04) 1px, transparent 1px) 0 0/56px 56px,
+        linear-gradient(135deg, rgba(56,189,248,.06), rgba(34,197,94,.05)),
+        #0b1220;
+    }
+    .map::before,.map::after{
+      content:"";position:absolute;border-radius:999px;background:rgba(148,163,184,.10)
+    }
+    .map::before{width:900px;height:70px;left:-100px;top:150px;transform:rotate(-18deg)}
+    .map::after{width:800px;height:54px;left:-80px;top:250px;transform:rotate(9deg)}
+    .map-label{
+      position:absolute;right:10px;top:10px;background:rgba(15,23,42,.9);border:1px solid var(--border);
+      padding:8px 10px;border-radius:10px;font-size:12px;color:var(--muted)
+    }
+    .pin{
+      position:absolute;transform:translate(-50%,-100%);cursor:pointer;user-select:none;
+      text-align:center
+    }
+    .pin .dot{
+      width:18px;height:18px;border-radius:50%;background:var(--accent);border:2px solid white;box-shadow:0 0 0 6px rgba(56,189,248,.16)
+    }
+    .pin .price{
+      margin-bottom:6px;background:rgba(15,23,42,.96);border:1px solid var(--border);padding:4px 7px;border-radius:999px;font-size:11px
+    }
+    .pin.selected .dot{background:var(--accent2);box-shadow:0 0 0 7px rgba(34,197,94,.18)}
+    .legend{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}
+    .legend .pill{padding:5px 9px;border:1px solid var(--border);border-radius:999px;font-size:12px;color:var(--muted)}
+    .insights{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+    .note{padding:12px;border-radius:12px;border:1px solid var(--border);background:#0b1220}
+    .barwrap{display:flex;align-items:center;gap:10px;margin:10px 0}
+    .barlabel{width:94px;color:var(--muted);font-size:13px}
+    .bar{height:14px;border-radius:999px;background:#0b1220;border:1px solid var(--border);overflow:hidden;flex:1}
+    .fill{height:100%;background:linear-gradient(90deg,var(--accent),var(--accent2))}
+    .tabs{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px}
+    .tab{padding:8px 10px;border-radius:10px;background:#0b1220;border:1px solid var(--border);color:var(--text);cursor:pointer}
+    .tab.active{background:var(--accent);color:#062033;font-weight:700}
+    .hide{display:none}
+    a{color:var(--accent)}
+    @media (max-width:1000px){
+      .layout,.main-grid{grid-template-columns:1fr}
+      .metrics{grid-template-columns:repeat(2,1fr)}
+    }
+    @media (max-width:560px){
+      .metrics,.insights{grid-template-columns:1fr}
+      th:nth-child(6), td:nth-child(6),
+      th:nth-child(7), td:nth-child(7){display:none}
+      .map{height:300px}
+      h1{font-size:24px}
+    }
+  </style>
+</head>
+<body>
+<div class="wrap">
+  <div class="hero">
+    <h1>🏠 House Advert Comparer Demo Plus</h1>
+    <div class="sub">Upgraded demo with a fake map view, area insights, bargain flags, and side-by-side comparison.</div>
+  </div>
+
+  <div class="layout">
+    <div class="panel">
+      <h2>Filters</h2>
+      <label>Location</label>
+      <select id="location"></select>
+
+      <label>Property type</label>
+      <select id="ptype"></select>
+
+      <label>Minimum bedrooms</label>
+      <input id="minBeds" type="number" min="0" value="0" />
+
+      <label>Maximum price (£)</label>
+      <input id="maxPrice" type="number" min="0" value="500000" />
+
+      <label>Max commute (mins)</label>
+      <input id="maxCommute" type="number" min="0" value="60" />
+
+      <div class="btnrow">
+        <button onclick="applyFilters()">Apply filters</button>
+        <button class="secondary" onclick="resetFilters()">Reset</button>
+      </div>
+
+      <div class="legend">
+        <div class="pill">Green pin = selected</div>
+        <div class="pill">Orange = bargain flag</div>
+      </div>
+      <div class="small" style="margin-top:12px">
+        The map is a visual mockup. Later you could swap it for Leaflet or Google Maps.
+      </div>
+    </div>
+
+    <div>
+      <div class="metrics">
+        <div class="metric"><div class="k">Listings found</div><div class="v" id="mCount">0</div></div>
+        <div class="metric"><div class="k">Average price</div><div class="v" id="mAvg">£0</div></div>
+        <div class="metric"><div class="k">Cheapest</div><div class="v" id="mCheap">£0</div></div>
+        <div class="metric"><div class="k">Best value</div><div class="v" id="mBest">—</div></div>
+      </div>
+
+      <div class="tabs">
+        <div class="tab active" onclick="showTab('list')">Listings</div>
+        <div class="tab" onclick="showTab('map')">Map</div>
+        <div class="tab" onclick="showTab('insights')">Insights</div>
+      </div>
+
+      <div id="tab-list" class="stack">
+        <div class="card">
+          <h2>Listings</h2>
+          <div style="overflow:auto;">
+            <table id="listingTable">
+              <thead>
+                <tr>
+                  <th>Compare</th>
+                  <th>Title</th>
+                  <th>Price</th>
+                  <th>Location</th>
+                  <th>Beds</th>
+                  <th>Commute</th>
+                  <th>Value</th>
+                </tr>
+              </thead>
+              <tbody></tbody>
+            </table>
+          </div>
+        </div>
+
+        <div class="card">
+          <h2>Comparison</h2>
+          <div class="small" style="margin-bottom:10px">Select up to 3 properties above or tap map pins.</div>
+          <div style="overflow:auto;">
+            <table id="compareTable">
+              <thead>
+                <tr>
+                  <th>Feature</th>
+                  <th>Property 1</th>
+                  <th>Property 2</th>
+                  <th>Property 3</th>
+                </tr>
+              </thead>
+              <tbody></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <div id="tab-map" class="stack hide">
+        <div class="card">
+          <h2>Map view</h2>
+          <div class="map" id="map">
+            <div class="map-label">Demo area map</div>
+          </div>
+        </div>
+      </div>
+
+      <div id="tab-insights" class="stack hide">
+        <div class="main-grid">
+          <div class="card">
+            <h2>Area insights</h2>
+            <div id="bars"></div>
+          </div>
+          <div class="card">
+            <h2>Smart notes</h2>
+            <div class="insights" id="smartNotes"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+const listings = [
+  {id:1, title:"2-bed flat in Manchester", price:220000, location:"Manchester", beds:2, type:"Flat", commute:26, x:58, y:45},
+  {id:2, title:"3-bed house in Manchester", price:310000, location:"Manchester", beds:3, type:"House", commute:34, x:63, y:39},
+  {id:3, title:"1-bed flat in Leeds", price:150000, location:"Leeds", beds:1, type:"Flat", commute:22, x:73, y:28},
+  {id:4, title:"2-bed house in Leeds", price:240000, location:"Leeds", beds:2, type:"House", commute:29, x:70, y:33},
+  {id:5, title:"4-bed house in Birmingham", price:400000, location:"Birmingham", beds:4, type:"House", commute:41, x:48, y:61},
+  {id:6, title:"2-bed flat in Birmingham", price:195000, location:"Birmingham", beds:2, type:"Flat", commute:30, x:44, y:66},
+  {id:7, title:"3-bed house in Sheffield", price:265000, location:"Sheffield", beds:3, type:"House", commute:27, x:62, y:24},
+  {id:8, title:"1-bed flat in Sheffield", price:140000, location:"Sheffield", beds:1, type:"Flat", commute:19, x:59, y:21}
+];
+
+let selectedIds = [];
+
+function gbp(v){ return "£" + Number(v).toLocaleString("en-GB"); }
+function valueScore(item){ return Math.round((item.beds * 22) - (item.price / 10000) - (item.commute / 5)); }
+function pricePerBed(item){ return Math.round(item.price / Math.max(item.beds,1)); }
+
+function initFilters(){
+  const locs = ["All", ...new Set(listings.map(x=>x.location))];
+  const types = ["All", ...new Set(listings.map(x=>x.type))];
+  document.getElementById("location").innerHTML = locs.map(v=>`<option>${v}</option>`).join("");
+  document.getElementById("ptype").innerHTML = types.map(v=>`<option>${v}</option>`).join("");
+}
+
+function getFiltered(){
+  const location = document.getElementById("location").value;
+  const ptype = document.getElementById("ptype").value;
+  const minBeds = Number(document.getElementById("minBeds").value || 0);
+  const maxPrice = Number(document.getElementById("maxPrice").value || 0);
+  const maxCommute = Number(document.getElementById("maxCommute").value || 999);
+
+  return listings.filter(x =>
+    (location === "All" || x.location === location) &&
+    (ptype === "All" || x.type === ptype) &&
+    x.beds >= minBeds &&
+    x.price <= maxPrice &&
+    x.commute <= maxCommute
+  );
+}
+
+function bargainIds(rows){
+  const byLoc = {};
+  rows.forEach(r=>{
+    byLoc[r.location] ||= [];
+    byLoc[r.location].push(r.price);
+  });
+  const avgByLoc = {};
+  for (const k in byLoc){
+    avgByLoc[k] = byLoc[k].reduce((a,b)=>a+b,0) / byLoc[k].length;
+  }
+  return new Set(rows.filter(r => r.price < avgByLoc[r.location] * 0.92).map(r=>r.id));
+}
+
+function renderMetrics(rows){
+  document.getElementById("mCount").textContent = rows.length;
+  if (!rows.length){
+    document.getElementById("mAvg").textContent = "£0";
+    document.getElementById("mCheap").textContent = "£0";
+    document.getElementById("mBest").textContent = "—";
+    return;
+  }
+  const prices = rows.map(x=>x.price);
+  document.getElementById("mAvg").textContent = gbp(Math.round(prices.reduce((a,b)=>a+b,0)/rows.length));
+  document.getElementById("mCheap").textContent = gbp(Math.min(...prices));
+  document.getElementById("mBest").textContent = rows.slice().sort((a,b)=>valueScore(b)-valueScore(a))[0].title;
+}
+
+function renderTable(rows){
+  const bargains = bargainIds(rows);
+  const body = document.querySelector("#listingTable tbody");
+  body.innerHTML = rows.map(x => `
+    <tr>
+      <td><input type="checkbox" ${selectedIds.includes(x.id) ? "checked" : ""} onchange="toggleSelect(${x.id}, this.checked)"></td>
+      <td><strong>${x.title}</strong><br>${bargains.has(x.id) ? '<span class="warn">Bargain flag</span><br>' : ''}<span class="small">${gbp(pricePerBed(x))} / bed</span></td>
+      <td>${gbp(x.price)}</td>
+      <td>${x.location}</td>
+      <td>${x.beds}</td>
+      <td>${x.commute} mins</td>
+      <td class="${valueScore(x)>=20?'best':''}">${valueScore(x)}</td>
+    </tr>
+  `).join("");
+}
+
+function renderCompare(rows){
+  const chosen = selectedIds.map(id => listings.find(x=>x.id===id)).filter(Boolean).slice(0,3);
+  const fields = [
+    ["Title", x=>x.title],
+    ["Price", x=>gbp(x.price)],
+    ["Location", x=>x.location],
+    ["Bedrooms", x=>x.beds],
+    ["Type", x=>x.type],
+    ["Commute", x=>x.commute + " mins"],
+    ["Price / bedroom", x=>gbp(pricePerBed(x))],
+    ["Value score", x=>valueScore(x)]
+  ];
+  const body = document.querySelector("#compareTable tbody");
+  body.innerHTML = fields.map(([label, fn]) =>
+    `<tr><td>${label}</td>${[0,1,2].map(i => `<td>${chosen[i] ? fn(chosen[i]) : "—"}</td>`).join("")}</tr>`
+  ).join("");
+}
+
+function renderMap(rows){
+  const map = document.getElementById("map");
+  Array.from(map.querySelectorAll(".pin")).forEach(n => n.remove());
+  const bargains = bargainIds(rows);
+  rows.forEach(x => {
+    const pin = document.createElement("div");
+    pin.className = "pin" + (selectedIds.includes(x.id) ? " selected" : "");
+    pin.style.left = x.x + "%";
+    pin.style.top = x.y + "%";
+    pin.innerHTML = `<div class="price" style="${bargains.has(x.id) ? 'border-color:#f59e0b;color:#f59e0b;' : ''}">${gbp(x.price)}</div><div class="dot"></div>`;
+    pin.onclick = () => toggleSelect(x.id, !selectedIds.includes(x.id));
+    map.appendChild(pin);
+  });
+}
+
+function renderInsights(rows){
+  const bars = document.getElementById("bars");
+  const notes = document.getElementById("smartNotes");
+  if (!rows.length){
+    bars.innerHTML = '<div class="note">No matching listings.</div>';
+    notes.innerHTML = '';
+    return;
+  }
+  const byLoc = {};
+  rows.forEach(r => {
+    if (!byLoc[r.location]) byLoc[r.location] = {prices:[], commute:[], count:0};
+    byLoc[r.location].prices.push(r.price);
+    byLoc[r.location].commute.push(r.commute);
+    byLoc[r.location].count += 1;
+  });
+
+  const avgs = Object.entries(byLoc).map(([loc,val]) => ({
+    loc,
+    avgPrice: Math.round(val.prices.reduce((a,b)=>a+b,0)/val.prices.length),
+    avgCommute: Math.round(val.commute.reduce((a,b)=>a+b,0)/val.commute.length),
+    count: val.count
+  }));
+
+  const maxPrice = Math.max(...avgs.map(x=>x.avgPrice));
+  bars.innerHTML = avgs.map(x => `
+    <div class="barwrap">
+      <div class="barlabel">${x.loc}</div>
+      <div class="bar"><div class="fill" style="width:${Math.max(8, (x.avgPrice/maxPrice)*100)}%"></div></div>
+      <div class="small">${gbp(x.avgPrice)}</div>
+    </div>
+  `).join("");
+
+  const cheapest = rows.slice().sort((a,b)=>a.price-b.price)[0];
+  const best = rows.slice().sort((a,b)=>valueScore(b)-valueScore(a))[0];
+  const fastest = rows.slice().sort((a,b)=>a.commute-b.commute)[0];
+
+  notes.innerHTML = `
+    <div class="note"><strong>Cheapest listing</strong><br>${cheapest.title}<br><span class="small">${gbp(cheapest.price)}</span></div>
+    <div class="note"><strong>Best value score</strong><br>${best.title}<br><span class="small">Score ${valueScore(best)}</span></div>
+    <div class="note"><strong>Fastest commute</strong><br>${fastest.title}<br><span class="small">${fastest.commute} mins</span></div>
+    <div class="note"><strong>Good project add-on</strong><br>Later add real maps, school data, and price history.</div>
+  `;
+}
+
+function toggleSelect(id, shouldAdd){
+  if (shouldAdd){
+    if (!selectedIds.includes(id) && selectedIds.length < 3) selectedIds.push(id);
+  } else {
+    selectedIds = selectedIds.filter(x => x !== id);
+  }
+  refresh();
+}
+
+function applyFilters(){ refresh(); }
+
+function resetFilters(){
+  document.getElementById("location").value = "All";
+  document.getElementById("ptype").value = "All";
+  document.getElementById("minBeds").value = 0;
+  document.getElementById("maxPrice").value = 500000;
+  document.getElementById("maxCommute").value = 60;
+  selectedIds = [];
+  refresh();
+}
+
+function showTab(name){
+  document.querySelectorAll(".tab").forEach(t=>t.classList.remove("active"));
+  event.target.classList.add("active");
+  document.getElementById("tab-list").classList.add("hide");
+  document.getElementById("tab-map").classList.add("hide");
+  document.getElementById("tab-insights").classList.add("hide");
+  document.getElementById("tab-" + name).classList.remove("hide");
+}
+
+function refresh(){
+  const rows = getFiltered();
+  selectedIds = selectedIds.filter(id => rows.some(r => r.id === id));
+  renderMetrics(rows);
+  renderTable(rows);
+  renderCompare(rows);
+  renderMap(rows);
+  renderInsights(rows);
+}
+
+initFilters();
+renderCompare([]);
+refresh();
+</script>
+</body>
+</html>
