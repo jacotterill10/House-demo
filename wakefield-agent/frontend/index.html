@@ -1,0 +1,257 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Wakefield Property Finder</title>
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" crossorigin="" />
+  <style>
+    :root{--bg:#f4f8ff;--panel:#fff;--text:#17324d;--muted:#5f748b;--line:#dbe7f3;--blue:#2f80ed;--blue2:#56ccf2;--green:#27ae60;--orange:#f2994a;--shadow:0 12px 32px rgba(48,86,120,.12);--radius:20px}
+    *{box-sizing:border-box} body{margin:0;font-family:Arial,Helvetica,sans-serif;color:var(--text);background:radial-gradient(circle at top left,#fff 0%,#eef7ff 38%,#f4f8ff 100%)}
+    .shell{max-width:1280px;margin:0 auto;padding:16px}.hero{background:linear-gradient(135deg,#fff,#eef6ff);border:1px solid var(--line);border-radius:28px;padding:20px;box-shadow:var(--shadow);margin-bottom:16px}
+    h1{margin:0 0 8px;font-size:32px}.subtitle{color:var(--muted);font-size:15px;max-width:760px}.hero-badges{display:flex;gap:8px;flex-wrap:wrap;margin-top:14px}.badge{background:#fff;border:1px solid var(--line);padding:8px 12px;border-radius:999px;font-size:13px;color:var(--muted);font-weight:600}
+    .layout{display:grid;grid-template-columns:310px 1fr;gap:16px;align-items:start}.panel,.card{background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);box-shadow:var(--shadow)}.panel{padding:18px;position:sticky;top:12px}.panel h2,.card h2{margin:0 0 12px;font-size:18px}
+    label{display:block;margin:12px 0 6px;font-size:14px;color:var(--muted);font-weight:600} input,select{width:100%;padding:12px 14px;border:1px solid var(--line);border-radius:14px;background:#fbfdff;font-size:15px;color:var(--text);outline:none}
+    .btn-row{display:flex;gap:10px;margin-top:16px;flex-wrap:wrap} button{border:none;border-radius:14px;padding:12px 16px;font-weight:700;cursor:pointer;font-size:14px}.primary{background:linear-gradient(135deg,var(--blue),var(--blue2));color:#fff}.secondary{background:#eef5ff;color:var(--text);border:1px solid var(--line)}
+    .main{display:grid;gap:16px}.metrics{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}.metric{background:linear-gradient(180deg,#fff,#f8fbff);border:1px solid var(--line);border-radius:18px;padding:16px;box-shadow:var(--shadow)}.metric .k{color:var(--muted);font-size:13px;font-weight:600}.metric .v{margin-top:8px;font-size:24px;font-weight:800;line-height:1.1}
+    .two-col{display:grid;grid-template-columns:1.12fr .88fr;gap:16px}.card{padding:16px}#map{height:440px;border-radius:18px;overflow:hidden;border:1px solid var(--line);margin-top:8px}
+    .cards{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}.property{background:linear-gradient(180deg,#fff,#fbfdff);border:1px solid var(--line);border-radius:18px;overflow:hidden;box-shadow:0 8px 24px rgba(48,86,120,.08)}
+    .image{height:158px;background:linear-gradient(135deg,#dff1ff,#bde1ff);position:relative;overflow:hidden}.image::before{content:"";position:absolute;inset:auto 18px 14px auto;width:120px;height:78px;background:rgba(255,255,255,.4);border-radius:16px;transform:rotate(-8deg);filter:blur(2px)}.image::after{content:"🏠";position:absolute;font-size:54px;left:18px;bottom:14px;opacity:.9}
+    .pill-row{position:absolute;top:12px;left:12px;display:flex;gap:8px;flex-wrap:wrap}.pill{background:rgba(255,255,255,.94);border:1px solid rgba(255,255,255,.7);padding:6px 10px;border-radius:999px;font-size:12px;font-weight:800;color:var(--text)}.pill.orange{color:#a85c15;background:#fff1e4;border-color:#ffd8ae}
+    .content{padding:16px}.price{font-size:28px;font-weight:900;margin-bottom:6px}.title{font-size:18px;font-weight:800;margin-bottom:4px}.meta{color:var(--muted);font-size:14px;margin-bottom:14px}
+    .features{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:14px}.feature{background:#f5faff;border:1px solid var(--line);border-radius:14px;padding:10px;text-align:center}.feature .n{font-size:18px;font-weight:800}.feature .t{font-size:12px;color:var(--muted);margin-top:4px}
+    .split{display:flex;justify-content:space-between;gap:12px;align-items:center;margin-bottom:10px;flex-wrap:wrap}.score{background:#ebfff3;color:#1f7a43;border:1px solid #cdeedb;padding:8px 10px;border-radius:999px;font-size:13px;font-weight:800}
+    .actions{display:flex;gap:10px;flex-wrap:wrap;margin-top:10px}.link-btn{text-decoration:none;display:inline-block;border-radius:12px;padding:11px 14px;font-weight:800;font-size:14px}.link-primary{background:linear-gradient(135deg,var(--blue),var(--blue2));color:#fff}.link-secondary{border:1px solid var(--line);background:#f7fbff;color:var(--text)}
+    .insight{display:grid;gap:10px}.note{background:#f8fbff;border:1px solid var(--line);border-radius:16px;padding:14px}.note strong{display:block;margin-bottom:6px;font-size:15px}.bars{display:grid;gap:12px;margin-top:14px}.bar-row{display:grid;grid-template-columns:120px 1fr auto;gap:12px;align-items:center}.bar{height:14px;border-radius:999px;background:#eef5ff;border:1px solid var(--line);overflow:hidden}.fill{height:100%;background:linear-gradient(135deg,var(--blue),var(--green));border-radius:999px}.mini{color:var(--muted);font-size:13px}
+    .compare-table{width:100%;border-collapse:collapse;margin-top:6px;font-size:14px}.compare-table th,.compare-table td{padding:12px 10px;border-bottom:1px solid var(--line);text-align:left;vertical-align:top}.compare-table th{color:var(--muted);font-weight:700}.footer-note{margin-top:10px;color:var(--muted);font-size:13px}
+    @media (max-width:1080px){.layout,.two-col{grid-template-columns:1fr}.panel{position:static}.cards{grid-template-columns:1fr}} @media (max-width:700px){.metrics{grid-template-columns:repeat(2,1fr)}h1{font-size:26px}#map{height:340px}} @media (max-width:480px){.metrics{grid-template-columns:1fr}.shell{padding:12px}}
+    .leaflet-popup-content-wrapper{border-radius:14px}.custom-popup .popup-title{font-weight:800;font-size:14px;margin-bottom:4px}.custom-popup .popup-price{font-weight:900;font-size:18px;color:var(--blue);margin-bottom:4px}.map-pin{background:linear-gradient(135deg,var(--blue),var(--blue2));color:#fff;border-radius:999px;padding:8px 10px;font-size:12px;font-weight:900;box-shadow:0 10px 20px rgba(47,128,237,.25);border:2px solid white;white-space:nowrap}.map-pin.best{background:linear-gradient(135deg,var(--green),#6fdc8c)}
+  </style>
+</head>
+<body>
+  <div class="shell">
+    <div class="hero">
+      <h1>Wakefield Property Finder</h1>
+      <div class="subtitle">A brighter, mobile-friendly property dashboard focused only on Wakefield. It includes a real interactive map, card-based listings, bargain detection, local scoring, and comparison tools.</div>
+      <div class="hero-badges"><div class="badge">Wakefield only</div><div class="badge">Interactive map</div><div class="badge">Bargain alerts</div><div class="badge">Phone friendly</div></div>
+    </div>
+    <div class="layout">
+      <aside class="panel">
+        <h2>Filters</h2>
+        <label for="area">Area</label>
+        <select id="area"><option value="All">All Wakefield</option><option>City Centre</option><option>Outwood</option><option>Sandal</option><option>Horbury</option><option>Stanley</option><option>Alverthorpe</option></select>
+        <label for="type">Property type</label>
+        <select id="type"><option value="All">All</option><option>House</option><option>Flat</option><option>Semi-detached</option><option>Detached</option></select>
+        <label for="minBeds">Minimum bedrooms</label><input id="minBeds" type="number" min="0" max="10" value="0" />
+        <label for="maxPrice">Maximum price (£)</label><input id="maxPrice" type="number" min="50000" step="5000" value="450000" />
+        <label for="maxCommute">Maximum commute to Wakefield centre (mins)</label><input id="maxCommute" type="number" min="0" max="90" value="45" />
+        <div class="btn-row"><button class="primary" onclick="applyFilters()">Apply filters</button><button class="secondary" onclick="resetFilters()">Reset</button></div>
+        <div class="footer-note">Tap property cards or map markers to compare up to 3 homes.</div>
+      </aside>
+      <main class="main">
+        <section class="metrics">
+          <div class="metric"><div class="k">Listings found</div><div class="v" id="metricCount">0</div></div>
+          <div class="metric"><div class="k">Average price</div><div class="v" id="metricAverage">£0</div></div>
+          <div class="metric"><div class="k">Cheapest</div><div class="v" id="metricCheapest">£0</div></div>
+          <div class="metric"><div class="k">Top value</div><div class="v" id="metricBest">—</div></div>
+        </section>
+        <section class="two-col">
+          <div class="card">
+            <h2>Wakefield map</h2>
+            <div id="map"></div>
+            <div class="footer-note">Blue markers show properties. Green markers highlight the best value listing in the current filtered set.</div>
+          </div>
+          <div class="card">
+            <h2>Smart insights</h2>
+            <div class="insight" id="insightNotes"></div>
+            <div class="bars" id="areaBars"></div>
+          </div>
+        </section>
+        <section class="card">
+          <h2>Compare selected properties</h2>
+          <table class="compare-table">
+            <thead><tr><th>Feature</th><th>Property 1</th><th>Property 2</th><th>Property 3</th></tr></thead>
+            <tbody id="compareBody"></tbody>
+          </table>
+        </section>
+        <section class="card">
+          <h2>Available properties</h2>
+          <div class="cards" id="propertyGrid"></div>
+        </section>
+      </main>
+    </div>
+  </div>
+
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin=""></script>
+  <script>
+    const listings = [
+      {id:1,title:"2-bed terrace in Wakefield City Centre",price:184950,area:"City Centre",beds:2,baths:1,type:"House",commute:11,size:760,lat:53.6832,lng:-1.4976,url:"#"},
+      {id:2,title:"3-bed semi in Outwood",price:239500,area:"Outwood",beds:3,baths:2,type:"Semi-detached",commute:18,size:1010,lat:53.7150,lng:-1.5070,url:"#"},
+      {id:3,title:"1-bed flat near Wakefield Westgate",price:122000,area:"City Centre",beds:1,baths:1,type:"Flat",commute:7,size:480,lat:53.6802,lng:-1.5068,url:"#"},
+      {id:4,title:"4-bed detached in Sandal",price:359950,area:"Sandal",beds:4,baths:2,type:"Detached",commute:16,size:1480,lat:53.6649,lng:-1.4860,url:"#"},
+      {id:5,title:"2-bed semi in Horbury",price:198000,area:"Horbury",beds:2,baths:1,type:"Semi-detached",commute:20,size:820,lat:53.6602,lng:-1.5608,url:"#"},
+      {id:6,title:"3-bed family home in Stanley",price:214995,area:"Stanley",beds:3,baths:1,type:"House",commute:15,size:980,lat:53.7015,lng:-1.4557,url:"#"},
+      {id:7,title:"2-bed flat in Alverthorpe",price:149950,area:"Alverthorpe",beds:2,baths:1,type:"Flat",commute:14,size:610,lat:53.6927,lng:-1.5340,url:"#"},
+      {id:8,title:"3-bed detached in Sandal",price:289950,area:"Sandal",beds:3,baths:2,type:"Detached",commute:17,size:1210,lat:53.6685,lng:-1.4893,url:"#"}
+    ];
+    let selectedIds = [], markerLayer = null;
+    const gbp=n=>"£"+Number(n).toLocaleString("en-GB");
+    const score=x=>Math.round((x.beds*24)+(x.size/70)-(x.price/10000)-(x.commute/3));
+    const pricePerSqft=x=>Math.round(x.price/Math.max(1,x.size));
+    const pricePerBed=x=>Math.round(x.price/Math.max(1,x.beds));
+    function filteredListings(){
+      const area=document.getElementById("area").value, type=document.getElementById("type").value, minBeds=+document.getElementById("minBeds").value||0, maxPrice=+document.getElementById("maxPrice").value||9999999, maxCommute=+document.getElementById("maxCommute").value||999;
+      return listings.filter(x=>(area==="All"||x.area===area)&&(type==="All"||x.type===type)&&x.beds>=minBeds&&x.price<=maxPrice&&x.commute<=maxCommute);
+    }
+    function bargainSet(rows){if(!rows.length) return new Set(); const avg=rows.reduce((a,b)=>a+b.price,0)/rows.length; return new Set(rows.filter(x=>x.price<avg*0.88).map(x=>x.id));}
+    function updateMetrics(rows){
+      document.getElementById("metricCount").textContent=rows.length;
+      if(!rows.length){document.getElementById("metricAverage").textContent="£0";document.getElementById("metricCheapest").textContent="£0";document.getElementById("metricBest").textContent="—";return;}
+      const avg=Math.round(rows.reduce((a,b)=>a+b.price,0)/rows.length), cheap=rows.slice().sort((a,b)=>a.price-b.price)[0], best=rows.slice().sort((a,b)=>score(b)-score(a))[0];
+      document.getElementById("metricAverage").textContent=gbp(avg); document.getElementById("metricCheapest").textContent=gbp(cheap.price); document.getElementById("metricBest").textContent=best.title;
+    }
+    function renderInsights(rows){
+      const notes=document.getElementById("insightNotes"), bars=document.getElementById("areaBars");
+      if(!rows.length){notes.innerHTML='<div class="note"><strong>No matching properties</strong>Try relaxing your filters.</div>'; bars.innerHTML=""; return;}
+      const cheapest=rows.slice().sort((a,b)=>a.price-b.price)[0], best=rows.slice().sort((a,b)=>score(b)-score(a))[0], fastest=rows.slice().sort((a,b)=>a.commute-b.commute)[0], bargains=bargainSet(rows);
+      notes.innerHTML=`<div class="note"><strong>Cheapest currently shown</strong>${cheapest.title}<div class="mini">${gbp(cheapest.price)} · ${cheapest.area}</div></div>
+      <div class="note"><strong>Best value pick</strong>${best.title}<div class="mini">Score ${score(best)} · ${gbp(pricePerSqft(best))}/sqft</div></div>
+      <div class="note"><strong>Fastest commute</strong>${fastest.title}<div class="mini">${fastest.commute} mins to centre</div></div>
+      <div class="note"><strong>Bargain alerts</strong>${bargains.size} listing(s) appear notably below the filtered average.</div>`;
+      const grouped={}; rows.forEach(x=>{if(!grouped[x.area]) grouped[x.area]=[]; grouped[x.area].push(x.price);});
+      const entries=Object.entries(grouped).map(([area,prices])=>({area,avg:Math.round(prices.reduce((a,b)=>a+b,0)/prices.length)})).sort((a,b)=>a.avg-b.avg), maxAvg=Math.max(...entries.map(x=>x.avg));
+      bars.innerHTML=`<h2 style="margin:4px 0 0;font-size:18px;">Average price by area</h2>`+entries.map(x=>`<div class="bar-row"><div class="mini">${x.area}</div><div class="bar"><div class="fill" style="width:${(x.avg/maxAvg)*100}%"></div></div><div class="mini">${gbp(x.avg)}</div></div>`).join("");
+    }
+    function toggleSelect(id){ if(selectedIds.includes(id)) selectedIds=selectedIds.filter(x=>x!==id); else if(selectedIds.length<3) selectedIds.push(id); else {selectedIds.shift(); selectedIds.push(id);} refresh(); }
+    function renderCompare(rows){
+      const chosen=selectedIds.map(id=>rows.find(x=>x.id===id)||listings.find(x=>x.id===id)).filter(Boolean).slice(0,3);
+      const fields=[["Title",x=>x.title],["Price",x=>gbp(x.price)],["Area",x=>x.area],["Bedrooms",x=>x.beds],["Bathrooms",x=>x.baths],["Type",x=>x.type],["Size",x=>`${x.size} sqft`],["Commute",x=>`${x.commute} mins`],["Price / bed",x=>gbp(pricePerBed(x))],["Price / sqft",x=>gbp(pricePerSqft(x))],["Score",x=>score(x)]];
+      document.getElementById("compareBody").innerHTML=fields.map(([label,fn])=>`<tr><th>${label}</th>${[0,1,2].map(i=>`<td>${chosen[i]?fn(chosen[i]):"—"}</td>`).join("")}</tr>`).join("");
+    }
+    function renderCards(rows){
+      const bargains=bargainSet(rows), best=rows.length?rows.slice().sort((a,b)=>score(b)-score(a))[0].id:null;
+      document.getElementById("propertyGrid").innerHTML=rows.length?rows.map(x=>`<article class="property"><div class="image"><div class="pill-row"><div class="pill">${x.area}</div>${bargains.has(x.id)?'<div class="pill orange">Under market</div>':''}${best===x.id?'<div class="pill">Top value</div>':''}</div></div><div class="content"><div class="split"><div class="price">${gbp(x.price)}</div><div class="score">Score ${score(x)}</div></div><div class="title">${x.title}</div><div class="meta">Wakefield · ${x.commute} mins to centre · ${gbp(pricePerSqft(x))}/sqft</div><div class="features"><div class="feature"><div class="n">${x.beds}</div><div class="t">Beds</div></div><div class="feature"><div class="n">${x.baths}</div><div class="t">Baths</div></div><div class="feature"><div class="n">${x.size}</div><div class="t">Sqft</div></div></div><div class="actions"><a href="${x.url}" class="link-btn link-primary">View advert</a><a href="javascript:void(0)" onclick="toggleSelect(${x.id})" class="link-btn link-secondary">${selectedIds.includes(x.id)?"Remove from compare":"Compare"}</a><a href="javascript:void(0)" onclick="focusMarker(${x.id})" class="link-btn link-secondary">Show on map</a></div></div></article>`).join(""):`<div class="note"><strong>No results</strong>Try increasing the max price or commute filter.</div>`;
+    }
+    const map=L.map('map',{zoomControl:true}).setView([53.6847,-1.4975],12);
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{maxZoom:19,attribution:'&copy; OpenStreetMap contributors'}).addTo(map);
+    function renderMap(rows){
+      if(markerLayer) markerLayer.remove(); markerLayer=L.layerGroup().addTo(map); if(!rows.length) return;
+      const best=rows.slice().sort((a,b)=>score(b)-score(a))[0].id;
+      rows.forEach(x=>{
+        const icon=L.divIcon({className:'',html:`<div class="map-pin ${x.id===best?'best':''}">${gbp(x.price)}</div>`,iconSize:[78,32],iconAnchor:[39,16]});
+        const marker=L.marker([x.lat,x.lng],{icon}).addTo(markerLayer);
+        marker.bindPopup(`<div class="custom-popup"><div class="popup-title">${x.title}</div><div class="popup-price">${gbp(x.price)}</div><div>${x.beds} bed · ${x.type} · ${x.area}</div><div>${x.commute} mins to centre · ${x.size} sqft</div><div style="margin-top:8px;"><button onclick="toggleSelect(${x.id})" style="background:#2f80ed;color:#fff;border:none;border-radius:10px;padding:8px 10px;font-weight:800;cursor:pointer;">${selectedIds.includes(x.id)?'Remove from compare':'Compare'}</button></div></div>`);
+      });
+      map.fitBounds(L.latLngBounds(rows.map(x=>[x.lat,x.lng])).pad(0.15));
+    }
+    function focusMarker(id){ const x=listings.find(a=>a.id===id); if(x) map.setView([x.lat,x.lng],14); }
+    function applyFilters(){ refresh(); }
+    function resetFilters(){ document.getElementById("area").value="All"; document.getElementById("type").value="All"; document.getElementById("minBeds").value=0; document.getElementById("maxPrice").value=450000; document.getElementById("maxCommute").value=45; selectedIds=[]; refresh(); }
+    function refresh(){ const rows=filteredListings(); updateMetrics(rows); renderInsights(rows); renderCompare(rows); renderCards(rows); renderMap(rows); }
+    refresh();
+  </script>
+  <section class="card" style="margin-top:16px;">
+    <h2>Ask the Property Assistant</h2>
+  
+    <div id="chatMessages" style="margin-bottom:12px;"></div>
+  
+    <div style="display:flex; gap:10px;">
+      <input
+        id="chatInput"
+        type="text"
+        placeholder="Ask: Find me 2-bed homes under £200k"
+        style="flex:1; padding:12px; border-radius:12px; border:1px solid #ccc;"
+      />
+      <button onclick="sendMessage()" class="primary">Send</button>
+    </div>
+  </section>
+<script>
+  async function sendMessage() {
+    const input = document.getElementById("chatInput");
+    const messages = document.getElementById("chatMessages");
+    const userMessage = input.value.trim();
+
+    if (!userMessage) return;
+
+    messages.innerHTML += `
+      <div style="margin-bottom:10px; padding:10px; background:#eef6ff; border-radius:12px;">
+        <strong>You:</strong> ${userMessage}
+      </div>
+    `;
+
+    input.value = "";
+
+    try {
+      const response = await fetch("http://127.0.0.1:8000/chat", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({ message: userMessage })
+      });
+
+      const data = await response.json();
+
+      messages.innerHTML += `
+        <div style="margin-bottom:10px; padding:10px; background:#f8fbff; border-radius:12px;">
+          <strong>Assistant:</strong> ${data.reply}
+        </div>
+      `;
+    } catch (error) {
+      messages.innerHTML += `
+        <div style="margin-bottom:10px; padding:10px; background:#ffe4e6; border-radius:12px;">
+          <strong>Error:</strong> Could not reach backend
+        </div>
+      `;
+    }
+  }
+</script>
+
+</body>
+</html>
+<script>
+    async function sendMessage() {
+      const input = document.getElementById("chatInput");
+      const messages = document.getElementById("chatMessages");
+      const userMessage = input.value.trim();
+  
+      if (!userMessage) return;
+  
+      messages.innerHTML += `
+        <div style="margin-bottom:10px; padding:10px; background:#eef6ff; border-radius:12px;">
+          <strong>You:</strong> ${userMessage}
+        </div>
+      `;
+  
+      input.value = "";
+  
+      try {
+        const response = await fetch("http://127.0.0.1:8000/chat", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json"
+          },
+          body: JSON.stringify({ message: userMessage })
+        });
+  
+        const data = await response.json();
+  
+        messages.innerHTML += `
+          <div style="margin-bottom:10px; padding:10px; background:#f8fbff; border-radius:12px;">
+            <strong>Assistant:</strong> ${data.reply}
+          </div>
+        `;
+      } catch (error) {
+        messages.innerHTML += `
+          <div style="margin-bottom:10px; padding:10px; background:#ffe4e6; border-radius:12px;">
+            <strong>Error:</strong> Could not reach backend
+          </div>
+        `;
+      }
+    }
+  </script>
+  
+  </body>
+  </html>
+</body>
+</html>
